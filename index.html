@@ -1593,8 +1593,8 @@ function confQ(){document.getElementById('mq').classList.remove('hidden')}
 function fQ(){
   cm('mq');
   stopTimer();
-  if(examInterval){clearInterval(examInterval);examInterval=null;}
-  showDash();
+  if(examInterval){clearInterval(examInterval);examInterval=null;examSave();}
+  showDash();examOffer();
 }
 function showRC(){document.getElementById('mr').classList.remove('hidden')}
 function rAll(){localStorage.removeItem(SK);AD=iD();cm('mr');showDash()}
@@ -1662,7 +1662,42 @@ const EXAMS=[
   {id:'sci',  label:'Sciences (Phy-Chi + SVT)', emoji:'⚗️', duration:60, sids:['phy','svt'],   nb:20, accent:'#4ade80'},
 ];
 
-let examDef=null, examQ=[], examQi=0, examSc=0, examErr=[], examInterval=null, examSecsLeft=0, examOpts=[];
+let examDef=null, examQ=[], examQi=0, examSc=0, examErr=[], examInterval=null, examSecsLeft=0, examOpts=[], examEnd=0, examFait=false;
+/* Examen blanc repris après un rechargement ou une mise en veille : l'état est gardé sur l'appareil
+   et le temps restant est calculé sur l'heure de fin (heure réelle), pas en comptant les secondes. */
+const EXK='brevet_examen';
+function examSave(){try{localStorage.setItem(EXK,JSON.stringify({id:examDef.id,q:examQ,qi:examQi,sc:examSc,err:examErr,end:examEnd,fait:examFait,opts:examOpts}))}catch(e){}}
+function examClear(){try{localStorage.removeItem(EXK)}catch(e){}}
+function examTick(){
+  examSecsLeft=Math.max(0,Math.round((examEnd-Date.now())/1000));
+  updateExamChrono();
+  if(examSecsLeft<=0){clearInterval(examInterval);examInterval=null;endExam();}
+}
+function examRun(){clearInterval(examInterval);examInterval=setInterval(examTick,500);examTick()}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&examInterval)examTick()});
+function examResume(){
+  let o;try{o=JSON.parse(localStorage.getItem(EXK)||'null')}catch(e){}
+  examDef=o&&EXAMS.find(e=>e.id===o.id);if(!examDef){examClear();return}
+  examResumeOpts=o.fait?null:o.opts;
+  examQ=o.q;examQi=o.qi+(o.fait?1:0);examSc=o.sc;examErr=o.err||[];examEnd=o.end;examFait=false;
+  ha();document.getElementById('sexamrun').classList.remove('hidden');
+  document.getElementById('exam-bar').style.background=examDef.accent;
+  examSecsLeft=Math.max(0,Math.round((examEnd-Date.now())/1000));
+  if(examSecsLeft<=0||examQi>=examQ.length){endExam();return}
+  renderExamQ();examRun();
+}
+function examOffer(){
+  let o;try{o=JSON.parse(localStorage.getItem(EXK)||'null')}catch(e){}
+  if(!o)return;const ex=EXAMS.find(e=>e.id===o.id);if(!ex){examClear();return}
+  const reste=Math.round((o.end-Date.now())/60000),fini=reste<=0;
+  const b=document.createElement('div');b.id='exam-reprise';
+  b.style.cssText='position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;background:#f97316;color:#000;font-weight:700;padding:12px 16px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;gap:10px;align-items:center;max-width:calc(100vw - 32px);flex-wrap:wrap;justify-content:center';
+  b.innerHTML=`<span>🎓 Examen blanc ${ex.label} en cours · question ${Math.min(o.qi+1+(o.fait?1:0),o.q.length)}/${o.q.length} · ${fini?'temps écoulé':reste+' min restantes'}</span>`+
+    `<button style="background:#000;color:#fff;border:0;border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer">${fini?'Voir le résultat':'Reprendre'}</button>`+
+    `<button style="background:transparent;border:1.5px solid #000;border-radius:9px;padding:6px 10px;font-weight:700;cursor:pointer">Abandonner</button>`;
+  const [bR,bA]=b.querySelectorAll('button');bR.onclick=()=>{b.remove();examResume()};bA.onclick=()=>{b.remove();examClear()};
+  document.body.appendChild(b);
+}
 
 function showExamSetup(){
   ha();document.getElementById('sexam').classList.remove('hidden');
@@ -1697,14 +1732,9 @@ function startExam(id){
   ha();document.getElementById('sexamrun').classList.remove('hidden');
   document.getElementById('exam-bar').style.background=examDef.accent;
   // Chrono compte à rebours
-  examSecsLeft=examDef.duration*60;
-  updateExamChrono();
-  examInterval=setInterval(()=>{
-    examSecsLeft--;
-    updateExamChrono();
-    if(examSecsLeft<=0){clearInterval(examInterval);examInterval=null;endExam();}
-  },1000);
-  renderExamQ();
+  examSecsLeft=examDef.duration*60;examEnd=Date.now()+examSecsLeft*1000;examFait=false;
+  const r=document.getElementById('exam-reprise');if(r)r.remove();
+  renderExamQ();examRun();
 }
 
 function updateExamChrono(){
@@ -1715,8 +1745,10 @@ function updateExamChrono(){
   el.className=examSecsLeft<300?'mono text-sm font-black text-[#fb7185]':'mono text-sm font-black text-orange-400';
 }
 
+let examResumeOpts=null;
 function renderExamQ(){
   const q=examQ[examQi];if(!q){endExam();return;}
+  examFait=false;
   const tot=examQ.length;
   document.getElementById('exam-cnt').textContent=`${examQi+1}/${tot}`;
   document.getElementById('exam-sc').textContent='✓ '+examSc;
@@ -1735,7 +1767,7 @@ function renderExamQ(){
     document.getElementById('exam-type-pill').textContent='QCM';
     document.getElementById('exam-zop').classList.add('hidden');
     document.getElementById('exam-zqcm').classList.remove('hidden');
-    examOpts=shuf(q.opts.map((t,i)=>({text:t,isC:i===q.ans})));
+    examOpts=(examResumeOpts&&examResumeOpts.length===4)?examResumeOpts:shuf(q.opts.map((t,i)=>({text:t,isC:i===q.ans})));examResumeOpts=null;
     for(let i=0;i<4;i++){
       const b=document.getElementById('ea'+i);
       b.lastElementChild.textContent=examOpts[i].text;
@@ -1745,6 +1777,7 @@ function renderExamQ(){
   }
 }
 
+const _renderExamQ=renderExamQ;renderExamQ=function(){_renderExamQ();if(examQ[examQi])examSave()};
 function examAns(idx){
   const q=examQ[examQi];const opt=examOpts[idx];const b=document.getElementById('ea'+idx);
   for(let i=0;i<4;i++)document.getElementById('ea'+i).disabled=true;
@@ -1761,7 +1794,8 @@ function examAnsOpen(){
 
 function examRecord(ok,q,ua){
   if(ok){examSc++;}
-  else{examErr.push({q:q.q,key:q.key,why:q.why,userAnswer:ua});}
+  else{examErr.push({q:q.q,key:q.key,why:q.why,userAnswer:ua,_sid:q._sid});}
+  examFait=true;examSave();
 }
 
 function examShowFB(ok,q,ua=''){
@@ -1775,6 +1809,7 @@ function examNext(){examQi++;renderExamQ();}
 
 function endExam(){
   if(examInterval){clearInterval(examInterval);examInterval=null;}
+  examClear();examSecsLeft=Math.max(0,Math.round((examEnd-Date.now())/1000));
   const tot=examQ.length,pct=Math.round(examSc/tot*100);
   const timeUsed=examDef.duration*60-examSecsLeft;
   // Sauvegarder les erreurs dans AD.sub par matière pour que retryE() fonctionne
@@ -2002,6 +2037,7 @@ function playBeep(ok){
 
 showDash();
 initUI();
+examOffer();
 // Restaurer nuit + son
 if(localStorage.getItem('brevet_night')==='1')toggleNight();
 if(localStorage.getItem('brevet_sound')==='1')toggleSound();

@@ -9,7 +9,7 @@ publics:[{id:'eleve',titre:'Élève',chapitres:[
 <li>Matières : histoire, géographie, maths, SVT, physique-chimie, EMC, et la <b>méthode</b> des épreuves.</li></ul>`},
 {t:'Mes erreurs, examen blanc, progression',html:`<ul>
 <li><span class="bouton">🔁 Mes erreurs</span> : ne retravaille que les questions ratées. Une question sort de la liste quand tu la réussis.</li>
-<li><span class="bouton">🎓 Simuler une épreuve du brevet</span> : examen blanc, chrono imposé, conditions réelles.</li>
+<li><span class="bouton">🎓 Simuler une épreuve du brevet</span> : examen blanc, chrono imposé, conditions réelles. Si la page se recharge ou si tu quittes, un bandeau propose de <b>reprendre</b> l’examen là où tu en étais : le temps continue de tourner, comme le jour de l’épreuve.</li>
 <li><span class="bouton">📈</span> Progression : ta réussite par matière et par thème. Commence par la matière la plus basse.</li>
 <li><span class="bouton">⏱</span> Activer le chronomètre : mesure le temps de ta session (QCM et saisie libre).</li></ul>
 <p class="astuce">Méthode qui marche : un peu chaque jour (15 min), d’abord en QCM, puis la même chose en saisie libre deux jours plus tard.</p>`},
