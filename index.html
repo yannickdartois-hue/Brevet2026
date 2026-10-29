@@ -1153,7 +1153,7 @@ function rdD(){
   else rs.classList.add('hidden');
 }
 
-function showMode(sid){if(sid)cSid=sid;const s=SUBJ.find(x=>x.id===cSid);ha();document.getElementById('sm').classList.remove('hidden');
+function showMode(sid){if(sid)cSid=sid;if(!cSid||!DB[cSid])return showDash(); /* retour depuis « Mes erreurs » toutes matières : pas de matière choisie */const s=SUBJ.find(x=>x.id===cSid);ha();document.getElementById('sm').classList.remove('hidden');
   const pl=document.getElementById('ml');pl.textContent=s.emoji+' '+s.label;pl.style.background=hex2r(s.accent,.15);pl.style.color=s.accent;pl.style.border='1px solid '+hex2r(s.accent,.3);
   const sd=AD.sub[s.id]||{er:[]};const eb=document.getElementById('bem');const ec=document.getElementById('emc');
   if(sd.er.length>0){eb.classList.remove('hidden');ec.textContent=sd.er.length+' à retravailler'}else eb.classList.add('hidden');
