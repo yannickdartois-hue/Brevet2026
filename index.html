@@ -1486,11 +1486,11 @@ function toggleTimer(){
 
 function startTimer(){
   if(!timerOn)return;
-  timerSecs=0;
+  timerSecs=0;const t0=Date.now(); // temps compté sur l'heure réelle : juste aussi après une mise en veille
   document.getElementById('quiz-timer').classList.remove('hidden');
   document.getElementById('quiz-timer').textContent='⏱ 0:00';
   timerInterval=setInterval(()=>{
-    timerSecs++;
+    timerSecs=Math.round((Date.now()-t0)/1000);
     const m=Math.floor(timerSecs/60),s=timerSecs%60;
     document.getElementById('quiz-timer').textContent=`⏱ ${m}:${s.toString().padStart(2,'0')}`;
   },1000);
