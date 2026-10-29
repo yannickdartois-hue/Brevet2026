@@ -306,8 +306,11 @@ input[type=text]:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(168
       <button onclick="showProg()" title="Progression" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.85rem">📈</button>
       <button onclick="showRC()" style="color:var(--muted);font-size:.7rem;font-weight:600;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;letter-spacing:.05em;text-transform:uppercase">Reset</button>
     </div>
-    <!-- Menu mobile -->
-    <button class="md:hidden" onclick="showSettingsPanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:.85rem">⚙️</button>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <button onclick="EPSAide.ouvrir()" title="Mode d’emploi" aria-label="Mode d’emploi" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:.95rem;font-weight:900;color:var(--text);flex-shrink:0">?</button>
+      <!-- Menu mobile -->
+      <button class="md:hidden" onclick="showSettingsPanel()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:.85rem">⚙️</button>
+    </div>
   </header>
   <main class="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full space-y-6">
 
@@ -2044,5 +2047,7 @@ self.addEventListener('fetch',e=>{
 </script>
 
 <script>if('serviceWorker' in navigator&&location.protocol==='https:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+<script src="aide.js"></script>
+<script src="eps-aide.js"></script>
 </body>
 </html>
